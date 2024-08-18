@@ -14,6 +14,10 @@ package frc.robot;
  */
 public final class Constants {
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
+    public static final int DriveControllerPort = 0;
   }
+
+  // Control
+  public static final double JOYSTICK_DEADBAND = .1;
+  public static final double DRIVE_MAX_TURN_RADIANS_PER_SECOND = 7;
 }

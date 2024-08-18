@@ -4,9 +4,17 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.Drivetrain.DrivetrainDefaultCommand;
+import frc.robot.subsystems.DrivetrainSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -15,6 +23,13 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * project.
  */
 public class Robot extends TimedRobot {
+  public static final CommandXboxController DRIVE_CONTROLLER = new CommandXboxController(OperatorConstants.DriveControllerPort);
+  public static final DrivetrainSubsystem DRIVETRAIN_SUBSYSTEM = new DrivetrainSubsystem();
+  public static final DrivetrainDefaultCommand DRIVETRAIN_DEFAULT_COMMAND = new DrivetrainDefaultCommand();
+
+  public static DriverStation.Alliance allianceColor = Alliance.Blue;
+  public static boolean cutPower = false;
+
   private Command m_autonomousCommand;
 
   /**
@@ -24,6 +39,14 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
 
+    DRIVETRAIN_SUBSYSTEM.setDefaultCommand(DRIVETRAIN_DEFAULT_COMMAND);
+
+    new Trigger(() -> DRIVE_CONTROLLER.getRightTriggerAxis() > 0.1)
+      .onTrue(new InstantCommand(() -> cutPower = true))
+      .onFalse(new InstantCommand(() -> cutPower = false));
+
+    new Trigger(() -> DRIVE_CONTROLLER.getHID().getStartButton() && DRIVE_CONTROLLER.getHID().getBackButton())
+      .onTrue(new InstantCommand(() -> DRIVETRAIN_SUBSYSTEM.zeroGyroscope()));
   }
 
   /**
@@ -35,6 +58,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    allianceColor = DriverStation.getAlliance().orElseGet(() -> Alliance.Blue);
     // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
